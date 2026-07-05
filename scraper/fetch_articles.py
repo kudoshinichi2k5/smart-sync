@@ -73,13 +73,12 @@ def save_article(article):
 
 def main():
     articles = get_all_articles()
-
-    print(f"\nDownloaded {len(articles)} articles\n")
+    print(f"Found {len(articles)} articles")
 
     for article in tqdm(articles):
         save_article(article)
 
-    print("\nDone.")
+    print(f"Downloaded {len(articles)} articles")
 
 
 if __name__ == "__main__":
