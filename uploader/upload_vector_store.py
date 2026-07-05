@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 from openai import OpenAI
 
 from config import DOCS_DIR
@@ -18,9 +17,21 @@ STATE_FILE = STATE_DIR / "vector_store.json"
 # Vector Store Utilities
 # =====================================================
 
+def save_state(vector_store_id):
+    with open(STATE_FILE, "w", encoding="utf8") as f:
+        json.dump(
+            {
+                "vector_store_id": vector_store_id
+            },
+            f,
+            indent=4
+        )
+
+
 def create_vector_store():
     """
-    Run ONLY once.
+    Create a new OpenAI Vector Store.
+    This should only run the first time.
     """
 
     print("Creating Vector Store...")
@@ -37,67 +48,62 @@ def create_vector_store():
 
 
 def load_vector_store_id():
+    """
+    Load existing Vector Store.
+    If it doesn't exist, create a new one automatically.
+    """
 
     if not STATE_FILE.exists():
-        raise RuntimeError(
-            "Vector Store not found. Run create_vector_store() first."
-        )
+        print("Vector Store not found.")
+        print("Creating a new one...\n")
+        return create_vector_store()
 
-    with open(STATE_FILE, "r") as f:
+    with open(STATE_FILE, "r", encoding="utf8") as f:
         data = json.load(f)
 
     return data["vector_store_id"]
 
 
-def save_state(vector_store_id):
-
-    with open(STATE_FILE, "w") as f:
-
-        json.dump(
-            {
-                "vector_store_id": vector_store_id
-            },
-            f,
-            indent=4
-        )
-
-
 # =====================================================
-# Upload
+# Upload Files
 # =====================================================
 
 def upload_files(files):
-
     """
-    files = list[Path]
+    Upload a list of markdown files to OpenAI Vector Store.
+
+    Args:
+        files (list[Path])
     """
 
     if len(files) == 0:
-
         print("No files need uploading.")
-
         return
 
     vector_store_id = load_vector_store_id()
 
-    print(f"\nUploading {len(files)} changed files...")
+    print(f"\nUploading {len(files)} file(s)...")
 
-    streams = [
-        open(file, "rb")
-        for file in files
-    ]
+    streams = []
 
-    batch = client.vector_stores.file_batches.upload_and_poll(
-        vector_store_id=vector_store_id,
-        files=streams
-    )
+    try:
 
-    print("\nUpload completed.")
-    print(f"Status: {batch.status}")
-    print(batch.file_counts)
+        for file in files:
+            streams.append(open(file, "rb"))
 
-    for s in streams:
-        s.close()
+        batch = client.vector_stores.file_batches.upload_and_poll(
+            vector_store_id=vector_store_id,
+            files=streams
+        )
+
+        print("\nUpload completed.")
+        print(f"Status : {batch.status}")
+        print(f"Files  : {batch.file_counts}")
+
+    finally:
+
+        for s in streams:
+            s.close()
 
 
 # =====================================================
@@ -106,8 +112,8 @@ def upload_files(files):
 
 if __name__ == "__main__":
 
-    files = sorted(DOCS_DIR.glob("*.md"))
+    markdown_files = sorted(DOCS_DIR.glob("*.md"))
 
-    upload_files(files)
+    upload_files(markdown_files)
 
     print("\nDone.")

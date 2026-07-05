@@ -33,14 +33,12 @@ def save_state(state):
 def write_log(added, updated, skipped):
 
     text = f"""
-Run Time: {datetime.now()}
-
-Added: {added}
-
-Updated: {updated}
-
-Skipped: {skipped}
-"""
+    Run Time : {datetime.now()}
+    Added : {added}
+    Updated : {updated}
+    Skipped : {skipped}
+    Uploaded : {added + updated}
+    """
 
     with open(LOG_FILE, "w") as f:
 
@@ -63,33 +61,22 @@ def main():
     print("="*60)
 
     state = load_state()
-
     added = []
-
     updated = []
-
     skipped = []
-
     new_state = {}
 
     for md in DOCS.glob("*.md"):
-
         h = file_hash(md)
-
         new_state[md.name] = h
-
         old_hash = state.get(md.name)
-
         if old_hash is None:
-
             added.append(md)
 
         elif old_hash != h:
-
             updated.append(md)
 
         else:
-
             skipped.append(md)
 
     changed = added + updated
@@ -105,11 +92,10 @@ def main():
     print("="*60)
 
     if changed:
-
         upload_files(changed)
+        save_state(new_state)
 
     else:
-
         print("No changed files.")
 
     save_state(new_state)
@@ -119,11 +105,8 @@ def main():
         len(updated),
         len(skipped)
     )
-
     print()
-
     print("Done.")
 
 if __name__ == "__main__":
-
     main()
