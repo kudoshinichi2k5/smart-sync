@@ -280,15 +280,11 @@ The assistant answers questions using the uploaded knowledge base and provides c
 
 ![Assistant Answer](screenshots/assistant_answer.png)
 
----
-
 ## OpenAI Vector Store
 
 All Markdown documents are successfully uploaded into the OpenAI Vector Store.
 
 ![OpenAI Vector Store](screenshots/openai_vector_store.png)
-
----
 
 ## Docker Execution
 
