@@ -68,12 +68,14 @@ def main():
 
     for md in DOCS.glob("*.md"):
         h = file_hash(md)
-        new_state[md.name] = h
-        old_hash = state.get(md.name)
-        if old_hash is None:
+        new_state[md.name] = {
+            "hash": h
+        }
+        old = state.get(md.name)
+        if old is None:
             added.append(md)
 
-        elif old_hash != h:
+        elif old["hash"] != h:
             updated.append(md)
 
         else:
