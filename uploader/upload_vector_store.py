@@ -1,4 +1,7 @@
 import json
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
 from openai import OpenAI
 from config import OPENAI_API_KEY
 from config import BASE_DIR
