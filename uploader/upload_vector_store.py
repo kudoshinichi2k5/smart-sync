@@ -16,37 +16,6 @@ STATE_FILE = STATE_DIR / "vector_store.json"
 # =====================================================
 # Vector Store Utilities
 # =====================================================
-
-def save_state(vector_store_id):
-    with open(STATE_FILE, "w", encoding="utf8") as f:
-        json.dump(
-            {
-                "vector_store_id": vector_store_id
-            },
-            f,
-            indent=4
-        )
-
-
-def create_vector_store():
-    """
-    Create a new OpenAI Vector Store.
-    This should only run the first time.
-    """
-
-    print("Creating Vector Store...")
-
-    store = client.vector_stores.create(
-        name="OptiSigns Knowledge Base"
-    )
-
-    print(f"Vector Store ID: {store.id}")
-
-    save_state(store.id)
-
-    return store.id
-
-
 def load_vector_store_id():
     """
     Load existing Vector Store.
