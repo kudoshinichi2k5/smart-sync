@@ -1,5 +1,9 @@
 import json
 from openai import OpenAI
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
 from config import DOCS_DIR
 from config import OPENAI_API_KEY
 from config import BASE_DIR
