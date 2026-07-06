@@ -4,5 +4,3 @@ markdownify
 python-dotenv
 openai
 google-genai
-python-dotenv
-config
