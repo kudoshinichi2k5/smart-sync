@@ -1,10 +1,5 @@
 import json
 from openai import OpenAI
-import sys
-from pathlib import Path
-sys.path.append(str(Path(__file__).resolve().parent.parent))
-
-from config import DOCS_DIR
 from config import OPENAI_API_KEY
 from config import BASE_DIR
 
@@ -16,17 +11,32 @@ STATE_FILE = STATE_DIR / "vector_store.json"
 
 
 # =====================================================
-# Vector Store Utilities
+# Vector Store
 # =====================================================
-def load_vector_store_id():
-    """
-    Load existing Vector Store.
-    If it doesn't exist, create a new one automatically.
-    """
 
+def create_vector_store():
+    print("Creating Vector Store...")
+
+    store = client.vector_stores.create(
+        name="OptiSigns Knowledge Base"
+    )
+
+    with open(STATE_FILE, "w", encoding="utf8") as f:
+        json.dump(
+            {
+                "vector_store_id": store.id
+            },
+            f,
+            indent=4
+        )
+
+    print("Created:", store.id)
+
+    return store.id
+
+
+def load_vector_store_id():
     if not STATE_FILE.exists():
-        print("Vector Store not found.")
-        print("Creating a new one...\n")
         return create_vector_store()
 
     with open(STATE_FILE, "r", encoding="utf8") as f:
@@ -34,47 +44,60 @@ def load_vector_store_id():
 
     return data["vector_store_id"]
 
+
 # =====================================================
-# Upload Files
+# Upload
 # =====================================================
 
 def upload_files(files):
     """
-    Upload a list of markdown files to OpenAI Vector Store.
-
-    Args:
-        files (list[Path])
+    Upload markdown files.
+    Returns
+    -------
+    {
+        filename:{
+            "file_id":xxx
+        }
+    }
     """
 
     if len(files) == 0:
-        print("No files need uploading.")
-        return
+        return {}
 
     vector_store_id = load_vector_store_id()
-    print(f"\nUploading {len(files)} file(s)...")
-    streams = []
+    uploaded = {}
 
-    try:
-        for file in files:
-            streams.append(open(file, "rb"))
-        batch = client.vector_stores.file_batches.upload_and_poll(
+    print(f"\nUploading {len(files)} file(s)...")
+
+    for path in files:
+        with open(path, "rb") as f:
+            openai_file = client.files.create(
+                file=f,
+                purpose="assistants"
+            )
+
+        client.vector_stores.files.create(
             vector_store_id=vector_store_id,
-            files=streams
+            file_id=openai_file.id
         )
 
-        print("\nUpload completed.")
-        print(f"Status : {batch.status}")
-        print(f"Files  : {batch.file_counts}")
+        uploaded[path.name] = {
+            "file_id": openai_file.id
+        }
 
-    finally:
-        for s in streams:
-            s.close()
+        print(f"Uploaded {path.name}")
+
+    return uploaded
+
 
 # =====================================================
-# Standalone Test
+# Delete old file
 # =====================================================
 
-if __name__ == "__main__":
-    markdown_files = sorted(DOCS_DIR.glob("*.md"))
-    upload_files(markdown_files)
-    print("\nDone.")
+def delete_file(file_id):
+    try:
+        client.files.delete(file_id)
+        print(f"Deleted old file {file_id}")
+
+    except Exception as e:
+        print(f"Skip deleting {file_id}: {e}")
