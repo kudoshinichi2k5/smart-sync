@@ -1,6 +1,5 @@
 import json
 from openai import OpenAI
-
 from config import DOCS_DIR
 from config import OPENAI_API_KEY
 from config import BASE_DIR
@@ -9,7 +8,6 @@ client = OpenAI(api_key=OPENAI_API_KEY)
 
 STATE_DIR = BASE_DIR / "state"
 STATE_DIR.mkdir(exist_ok=True)
-
 STATE_FILE = STATE_DIR / "vector_store.json"
 
 
@@ -32,7 +30,6 @@ def load_vector_store_id():
 
     return data["vector_store_id"]
 
-
 # =====================================================
 # Upload Files
 # =====================================================
@@ -50,16 +47,12 @@ def upload_files(files):
         return
 
     vector_store_id = load_vector_store_id()
-
     print(f"\nUploading {len(files)} file(s)...")
-
     streams = []
 
     try:
-
         for file in files:
             streams.append(open(file, "rb"))
-
         batch = client.vector_stores.file_batches.upload_and_poll(
             vector_store_id=vector_store_id,
             files=streams
@@ -70,19 +63,14 @@ def upload_files(files):
         print(f"Files  : {batch.file_counts}")
 
     finally:
-
         for s in streams:
             s.close()
-
 
 # =====================================================
 # Standalone Test
 # =====================================================
 
 if __name__ == "__main__":
-
     markdown_files = sorted(DOCS_DIR.glob("*.md"))
-
     upload_files(markdown_files)
-
     print("\nDone.")
